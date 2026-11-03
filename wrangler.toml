@@ -1,0 +1,24 @@
+# Configuracao do Cloudflare Worker (o "cerebro" do bot na nuvem)
+name = "empis-suporte-bot"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Configuracoes NAO secretas. Os segredos (tokens, chaves) NAO ficam aqui:
+# eles sao cadastrados com "npx wrangler secret put NOME" (veja o guia).
+[vars]
+# O provedor de WhatsApp (WA_PROVIDER = meta | evolution) e um SEGREDO, nao fica aqui:
+#   npx wrangler secret put WA_PROVIDER
+GRAPH_VERSION = "v23.0"
+# Avisar os tecnicos (WhatsApp) quando chegar chamado novo / mensagem. "true" ou "false"
+NOTIFICAR_TECNICOS = "true"
+# Coexistencia: pausar o bot quando o tecnico responder pelo app do celular.
+# Deixe "false" ate validar na ETAPA 8 (veja docs/GUIA-PASSO-A-PASSO.md).
+PAUSAR_AO_RESPONDER_NO_APP = "false"
+
+# Tarefa diaria (12:00 UTC = 09:00 em Brasilia) que acessa o banco para ele
+# nao ser pausado por inatividade no plano gratuito do Supabase.
+[triggers]
+crons = ["0 12 * * *"]
+
+[observability]
+enabled = true

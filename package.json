@@ -1,0 +1,16 @@
+{
+  "name": "empis-suporte-bot",
+  "version": "1.0.0",
+  "description": "Chatbot de suporte tecnico da EMPIS pelo WhatsApp Cloud API (Cloudflare Workers + Supabase)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "engines": { "node": ">=20" },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

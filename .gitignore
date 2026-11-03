@@ -1,0 +1,9 @@
+node_modules/
+.dev.vars
+.env
+.wrangler/
+*.dump
+*.gpg
+
+# Arquivos de deploy com segredos reais
+/deploy/
