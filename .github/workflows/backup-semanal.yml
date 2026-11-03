@@ -1,0 +1,33 @@
+# Backup semanal do banco (o plano gratuito do Supabase NAO tem backup automatico).
+# ATENCAO: este arquivo NAO foi testado de verdade (nao ha como testar fora do GitHub).
+# Veja docs/MANUTENCAO.md para ativar. Funciona apenas em repositorio PRIVADO.
+name: Backup semanal do banco
+on:
+  schedule:
+    - cron: "0 7 * * 1"   # toda segunda, 07:00 UTC
+  workflow_dispatch: {}    # permite rodar manualmente em Actions > Run workflow
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente PostgreSQL 17
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common gnupg
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+      - name: Gerar backup criptografado
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" --schema=public --no-owner --no-privileges -f backup.sql
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" --symmetric --cipher-algo AES256 -o "backup-$(date +%F).sql.gpg" backup.sql
+          rm backup.sql
+      - name: Guardar backup (90 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-banco
+          path: backup-*.sql.gpg
+          retention-days: 90

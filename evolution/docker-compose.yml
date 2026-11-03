@@ -1,0 +1,47 @@
+# Evolution API (WhatsApp NAO oficial, temporario) com o Postgres do Supabase.
+# Serve para testar no seu computador ou subir em um VPS. Na Railway voce cria os servicos
+# pelo painel (veja docs/EVOLUTION-RAILWAY.md); este arquivo usa as mesmas variaveis.
+#
+# Uso:
+#   1. copie evolution/.env.example para evolution/.env e preencha
+#   2. cd evolution && docker compose up -d
+#   3. painel: http://localhost:8080/manager
+#
+# CONFIRA os nomes das variaveis na referencia oficial antes de usar em producao:
+# https://doc.evolution-api.com/v2/en/env
+
+services:
+  evolution:
+    image: docker.io/evoapicloud/evolution-api:v2.3.7   # versao fixa; nao use "latest"
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file: .env
+    extra_hosts:
+      # Permite usar http://host.docker.internal:8787 para alcancar o Worker local (wrangler dev)
+      - "host.docker.internal:host-gateway"
+    environment:
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_CLIENT_NAME: empis
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+      WEBHOOK_GLOBAL_ENABLED: "true"
+      # Se true, a Evolution acrescenta o nome do evento na URL e o Worker responde 404
+      WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS: "false"
+      WEBHOOK_EVENTS_MESSAGES_UPSERT: "true"
+    volumes:
+      # Guarda o login do WhatsApp. Sem isso, todo reinicio exige ler o QR code de novo.
+      - evolution_instances:/evolution/instances
+    depends_on:
+      - redis
+
+  redis:
+    image: docker.io/library/redis:8.2.1
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - evolution_redis:/data
+
+volumes:
+  evolution_instances:
+  evolution_redis:
